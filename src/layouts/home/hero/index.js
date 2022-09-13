@@ -7,9 +7,10 @@ import {
     Button,
     useToast,
 } from '@chakra-ui/react';
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef } from "react";
 
 import { Illustration } from '../../../assets/hero-illustration/Illustration';
+import { VotesDisplay } from '../votes/idenx';
 import useContractFunctions from "../../../hooks/useContractFunctions";
 
 const TOAST_MESSAGE_DURATION = 5000
@@ -18,12 +19,13 @@ export default function CallToActionWithIllustration() {
 
   const [vote, setVote] = useState(0);
   const toast = useToast();
+  const ref = useRef(null);
 
   const {
     registerVote,
   } = useContractFunctions();
 
-  const saveVote = useCallback(async () => {
+  const saveVote = useCallback(async (vote) => {
     if (!vote || vote === 0) {
       // toast({
       //   title: 'Invalid Form data',
@@ -37,11 +39,11 @@ export default function CallToActionWithIllustration() {
     const { voteReponse } = await registerVote(vote)
     return voteReponse
   // }, [vote, toast, registerVote])
-  }, [vote, registerVote])
+  }, [registerVote])
 
   const onVoteSubmit = vote => {
-    setVote(vote)
-    saveVote()
+    setVote(vote);
+    saveVote(vote)
       .then(voteReponse => {
         toast({
           title: 'Transaction completed',
@@ -49,6 +51,7 @@ export default function CallToActionWithIllustration() {
           status: 'success',
           duration: TOAST_MESSAGE_DURATION
         })
+        ref.current.updateVotes();
       }).catch(err => {
         toast({
           title: 'Transaction NOT completed',
@@ -56,7 +59,7 @@ export default function CallToActionWithIllustration() {
           status: 'error',
           duration: TOAST_MESSAGE_DURATION
         })
-      })
+      });
   }
   
   return (
@@ -82,6 +85,7 @@ export default function CallToActionWithIllustration() {
           or<br/>
           Convert our group into a DAO, making decisions by consensus, and experience the web3 paradigm.
         </Text>
+        <VotesDisplay ref={ref} />
         <Stack spacing={6} direction={'row'}>
           <Button
             rounded={'full'}
